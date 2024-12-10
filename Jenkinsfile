@@ -37,7 +37,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 // 部署步骤，例如将构建好的项目复制到目标服务器等操作，这里只是示例，需要完善
-                sh 'test CD - 3'
+                sh 'echo "test CD - 3"'
             }
         }
     }
