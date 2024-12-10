@@ -1,0 +1,27 @@
+system:
+  host: 0.0.0.0
+  port: 8088
+  env: dev
+
+mysql:
+  host: 119.91.237.242
+  port: 3306
+  dbname: oceantest
+  dbuser: oceantestusr
+  dbpassword: oceanwangpwd
+
+redis:
+  db: 0
+  addr: 119.91.237.242
+  port: 6379
+  password: ""
+  tls: false
+
+docker:
+  host: "tcp://119.91.237.242:5732"
+  version: "1.43"   # 目前API Version是1.47 ，暂不支持这么高，需要设置为1.43
+
+
+k8s:
+  mode: 2   # 1 = masterURL , 2 = kubeconfig
+  kubeconfig: ""
