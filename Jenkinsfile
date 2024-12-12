@@ -61,8 +61,6 @@ def developPipeline() {
             checkout([$class: 'GitSCM', 
                     branches: [[name: '*/main']], 
                     userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
-            // 拉取代码
-            git credentialsId: 'GitHub-Token', url: "${GITHUB_REPO_URL}"
         }
     }
     stage('Build On Image') {
@@ -84,14 +82,6 @@ def developPipeline() {
             script {
                 sshCommand remote: remote,command: "ls -alth"
             }
-        }
-    }
-}
-
-def productionPipeline() {
-    stage('Not Support') {
-        steps {
-            sh 'echo "还没有支持正式环境的pipeline"'
         }
     }
 }
