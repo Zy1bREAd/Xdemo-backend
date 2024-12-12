@@ -27,7 +27,35 @@ pipeline {
                 script {
                     def branchName = env.BRANCH_NAME
                     if (branchName == 'main') {
-                        developPipeline()
+                        stage('Checkout GitHub and Pull Code') {
+                            steps {
+                                // 从 GitHub 仓库检出代码
+                                checkout([$class: 'GitSCM', 
+                                        branches: [[name: '*/main']], 
+                                        userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
+                            }
+                        }
+                        stage('Build On Image') {
+                            steps {
+                                sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
+                            }
+                        }
+                        stage('Push Image') {
+                            // 推送镜像到Harbor
+                            steps {
+                                sh "docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+                                sh "docker push ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+                            }
+                        }
+                        stage('Deploy To Server') {
+                            steps {
+                                // 运行测试用例，同样根据项目类型修改
+                                sh "echo Autodeploy"
+                                script {
+                                    sshCommand remote: remote,command: "ls -alth"
+                                }
+                            }
+                        }
                     }else {
                         echo "不支持${branchName}分支构建"
                     }
@@ -55,33 +83,5 @@ pipeline {
 
 // 定义多分支流水线
 def developPipeline() {
-    stage('Checkout GitHub and Pull Code') {
-        steps {
-            // 从 GitHub 仓库检出代码
-            checkout([$class: 'GitSCM', 
-                    branches: [[name: '*/main']], 
-                    userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
-        }
-    }
-    stage('Build On Image') {
-        steps {
-            sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
-        }
-    }
-    stage('Push Image') {
-        // 推送镜像到Harbor
-        steps {
-            sh "docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
-            sh "docker push ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
-        }
-    }
-    stage('Deploy To Server') {
-        steps {
-            // 运行测试用例，同样根据项目类型修改
-            sh "echo Autodeploy"
-            script {
-                sshCommand remote: remote,command: "ls -alth"
-            }
-        }
-    }
+    
 }
