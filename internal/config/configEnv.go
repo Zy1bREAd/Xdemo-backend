@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"runtime"
@@ -22,7 +23,7 @@ type AppConfigEnv struct {
 type SystemConfig struct {
 	Host string `yaml:"host"`
 	Port string `yaml:"port"`
-	Env  string `yaml:"env"`
+	Mode string `yaml:"mode"`
 }
 
 type DataBaseConfig struct {
@@ -57,15 +58,22 @@ func NewConfigEnvProvider() AppConfigEnv {
 }
 
 // 指定方式读取ConfigEnv
-func InitConfigEnv(mode string) {
-	mode = strings.ToLower(mode)
-	switch mode {
+func InitConfigEnv() {
+	appMode := os.Getenv("XDEMO_SYSTEM_MODE")
+	appMode = strings.ToLower(appMode)
+	if appMode == "" {
+		appMode = "local"
+	}
+	switch appMode {
 	case "local":
 		var yamlConfig YAMLConfig
 		yamlConfig.LoadInConfigEnv()
 	case "container":
 		var containerConfig ContainerConfig
 		containerConfig.LoadInConfigEnv()
+		fmt.Println("容器变量：", containerConfig.Env)
+	default:
+		panic(fmt.Errorf("暂不支持其他App启动模式"))
 	}
 }
 
@@ -133,15 +141,15 @@ func (cc *ContainerConfig) LoadInConfigEnv() {
 			switch strings.ToLower(splitEnvKey[1]) {
 			case "database":
 				// fmt.Println("进入mysql的map key value")
-				cc.SetDataBaseEnvMap(splitEnvKey[2], envValue)
+				cc.setDataBaseEnvMap(splitEnvKey[2], envValue)
 			case "redis":
-				cc.SetRedisEnvMap(splitEnvKey[2], envValue)
+				cc.setRedisEnvMap(splitEnvKey[2], envValue)
 			case "system":
-				cc.SetSystemEnvMap(splitEnvKey[2], envValue)
+				cc.setSystemEnvMap(splitEnvKey[2], envValue)
 			case "docker":
-				cc.SetDockerEnvMap(splitEnvKey[2], envValue)
+				cc.setDockerEnvMap(splitEnvKey[2], envValue)
 			case "k8s":
-				cc.SetK8sEnvMap(splitEnvKey[2], envValue)
+				cc.setK8sEnvMap(splitEnvKey[2], envValue)
 			}
 		}
 	}
@@ -151,7 +159,7 @@ func (cc *ContainerConfig) GetAppConfigEnv() AppConfigEnv {
 	return cc.Env
 }
 
-func (cc *ContainerConfig) SetDataBaseEnvMap(keySplitThird string, value string) {
+func (cc *ContainerConfig) setDataBaseEnvMap(keySplitThird string, value string) {
 	switch strings.ToLower(keySplitThird) {
 	case "host":
 		cc.Env.DataBase.Host = value
@@ -166,7 +174,7 @@ func (cc *ContainerConfig) SetDataBaseEnvMap(keySplitThird string, value string)
 	}
 }
 
-func (cc *ContainerConfig) SetRedisEnvMap(keySplitThird string, value string) {
+func (cc *ContainerConfig) setRedisEnvMap(keySplitThird string, value string) {
 	switch strings.ToLower(keySplitThird) {
 	case "addr":
 		cc.Env.Redis.Addr = value
@@ -191,10 +199,10 @@ func (cc *ContainerConfig) SetRedisEnvMap(keySplitThird string, value string) {
 	}
 }
 
-func (cc *ContainerConfig) SetSystemEnvMap(keySplitThird string, value string) {
+func (cc *ContainerConfig) setSystemEnvMap(keySplitThird string, value string) {
 	switch strings.ToLower(keySplitThird) {
 	case "env":
-		cc.Env.System.Env = value
+		cc.Env.System.Mode = value
 	case "host":
 		cc.Env.System.Host = value
 	case "port":
@@ -202,7 +210,7 @@ func (cc *ContainerConfig) SetSystemEnvMap(keySplitThird string, value string) {
 	}
 }
 
-func (cc *ContainerConfig) SetDockerEnvMap(keySplitThird string, value string) {
+func (cc *ContainerConfig) setDockerEnvMap(keySplitThird string, value string) {
 	switch strings.ToLower(keySplitThird) {
 	case "host":
 		cc.Env.Docker.Host = value
@@ -211,7 +219,7 @@ func (cc *ContainerConfig) SetDockerEnvMap(keySplitThird string, value string) {
 	}
 }
 
-func (cc *ContainerConfig) SetK8sEnvMap(keySplitThird string, value string) {
+func (cc *ContainerConfig) setK8sEnvMap(keySplitThird string, value string) {
 	switch strings.ToLower(keySplitThird) {
 	case "mode":
 		convertResult, err := strconv.ParseInt(value, 0, 32)

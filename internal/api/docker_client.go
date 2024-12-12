@@ -52,9 +52,9 @@ func InitDocker() {
 	DockerInstance = NewDocker()
 	apiClient = DockerInstance.NewDockerClient()
 	if apiClient == nil {
-		panic("初始化Docker出现错误")
+		panic("[Oops] Docker Engine API Connect Failed!!")
 	}
-	log.Println("初始化并连接Docker成功！")
+	log.Println("Docker Engine API Connect Success~")
 }
 
 func (d *MyDocker) NewDockerClient() *client.Client {

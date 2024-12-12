@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"os"
 	api "xdemo/internal/api"
 	"xdemo/internal/config"
 	db "xdemo/internal/database"
@@ -25,14 +23,12 @@ func main() {
 	middleware.InitGlobalValidator()
 	// 加载配置文件
 	// yamlConfig := config.LoadConfig()
-	config.InitConfigEnv("local")
+	config.InitConfigEnv()
 	db.LoadDB()
 	api.InitRedis()
 	api.InitDocker()
 	api.InitK8sClient()
 
 	// 尝试读取env 变量
-	result, exits := os.LookupEnv("XDEMO_VERSION")
-	fmt.Printf("变量结果是:%s,是否存在该env:%v", result, exits)
 	router.InitRouter()
 }

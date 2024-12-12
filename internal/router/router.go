@@ -83,7 +83,6 @@ func RegisterRoute(fn FnRegisterRoute) {
 
 // 初始化基础路由信息
 func InitBaseRoutes() {
-
 	InitPublicRoutes()
 	// 里面就是各个模块的注册路由函数，由他们去实际控制对应路由的handleFunc
 	InitUserRoutes()

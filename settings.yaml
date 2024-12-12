@@ -1,11 +1,11 @@
 system:
   host: 0.0.0.0
   port: 8088
-  env: dev
+  mode: local
 
 mysql:
   host: 119.91.237.242
-  port: 3306
+  port: 2206
   dbname: oceantest
   dbuser: oceantestusr
   dbpassword: oceanwangpwd

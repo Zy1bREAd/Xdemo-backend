@@ -40,7 +40,7 @@ func InitK8sClient() {
 	if configProvider.K8s.KubeConfig == "" {
 		configProvider.K8s.KubeConfig = clientcmd.RecommendedHomeFile
 	}
-	err := K8sInstance.SetKubeConfig(configProvider.K8s.Mode, configProvider.K8s.KubeConfig)
+	err := K8sInstance.BuildKubeConfig(configProvider.K8s.Mode, configProvider.K8s.KubeConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -49,19 +49,19 @@ func InitK8sClient() {
 		panic(err)
 	}
 	K8sInstance.ClientSet = clientset
+	log.Println("K8s Cluster API Connect Success~")
 }
 
 // 读取kubeconfig配置。（master url = 1， kubeconfig = 2）
-func (c *MyK8s) SetKubeConfig(mode int, kubeconfig string) error {
+func (c *MyK8s) BuildKubeConfig(mode int, configPath string) error {
 	switch mode {
 	case 1:
 		fmt.Println("使用master url进行初始化配置")
 		fmt.Println("暂不支持")
 	case 2:
-		fmt.Println("使用kubeconfig文件进初始化配置")
-		cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+		cfg, err := clientcmd.BuildConfigFromFlags("", configPath)
 		if err != nil {
-			log.Println("构建Kubeconfig配置发生错误 ", err)
+			log.Println("Build K8s kubeconfig Failed ", err)
 			return err
 		}
 		c.KubeConfig = cfg
