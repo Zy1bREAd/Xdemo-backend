@@ -35,6 +35,7 @@ pipeline {
                 branch 'main'
             }
             steps {
+                sh 'pwd && ls -al'
                 sh "sudo docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
             }
         }
@@ -60,7 +61,7 @@ pipeline {
             steps {
                 // 运行测试用例，同样根据项目类型修改
                 sh "echo Autodeploy"
-                sshagent([${DEVELOP_SERVER_CRED_ID}]) {
+                sshagent(["${DEVELOP_SERVER_CRED_ID}"]) {
                     sh "ssh ${SERVER_USER}@${SERVER_IP} 'sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp'"
                 }
             }
@@ -72,9 +73,12 @@ pipeline {
             steps {
                 // 运行测试用例，同样根据项目类型修改
                 sh "echo Autodeploy"
-                script {
-                    sshCommand remote: remote,command: "ls -alth"
+                sshagent(["${DEVELOP_SERVER_CRED_ID}"]) {
+                    sh "ssh ${SERVER_USER}@${SERVER_IP} 'sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp'"
                 }
+                // script {
+                //     sshCommand remote: remote,command: "ls -alth"
+                // }
             }
         }
     }
