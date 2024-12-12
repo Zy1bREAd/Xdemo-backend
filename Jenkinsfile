@@ -21,44 +21,58 @@ pipeline {
 
     // 构建步骤
     stages {
-        // 判断分支来决定环境的CI/CD
-        stage('Check Branch') {
+        stage('Checkout GitHub Branch and Pull Code') {
             steps {
+                // 从 GitHub 仓库检出代码
+                checkout([$class: 'GitSCM', 
+                        branches: [[name: '*/main']], 
+                        userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
+            }
+        }
+        stage('Build On Image For Develop') {
+            when {
+                branch 'main'
+            }
+            steps {
+                sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
+            }
+        }
+        stage('Build On Image For Production') {
+            when {
+                branch 'prod'
+            }
+            steps {
+                sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
+            }
+        }
+        stage('Push Image') {
+            // 推送镜像到Harbor
+            steps {
+                sh "docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+                sh "docker push ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+            }
+        }
+        stage('Deploy To Develop Env') {
+            when {
+                branch 'main'
+            }
+            steps {
+                // 运行测试用例，同样根据项目类型修改
+                sh "echo Autodeploy"
                 script {
-                    def branchName = env.BRANCH_NAME
-                    if (branchName == 'main') {
-                        stage('Checkout GitHub and Pull Code') {
-                            steps {
-                                // 从 GitHub 仓库检出代码
-                                checkout([$class: 'GitSCM', 
-                                        branches: [[name: '*/main']], 
-                                        userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
-                            }
-                        }
-                        stage('Build On Image') {
-                            steps {
-                                sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
-                            }
-                        }
-                        stage('Push Image') {
-                            // 推送镜像到Harbor
-                            steps {
-                                sh "docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
-                                sh "docker push ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
-                            }
-                        }
-                        stage('Deploy To Server') {
-                            steps {
-                                // 运行测试用例，同样根据项目类型修改
-                                sh "echo Autodeploy"
-                                script {
-                                    sshCommand remote: remote,command: "ls -alth"
-                                }
-                            }
-                        }
-                    }else {
-                        echo "不支持${branchName}分支构建"
-                    }
+                    sshCommand remote: remote,command: "ls -alth"
+                }
+            }
+        }
+        stage('Deploy To Production Env') {
+            when {
+                branch 'prod'
+            }
+            steps {
+                // 运行测试用例，同样根据项目类型修改
+                sh "echo Autodeploy"
+                script {
+                    sshCommand remote: remote,command: "ls -alth"
                 }
             }
         }
