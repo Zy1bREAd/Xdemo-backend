@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"time"
-	conf "xdemo/internal/config"
+	config "xdemo/internal/config"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -43,11 +43,11 @@ func NewMyRedis() *MyRedis {
 
 func (r *MyRedis) NewRedisClient() *redis.Client {
 	// 获取redis配置信息
-	yamlConfig := conf.LoadConfig()
+	configProvider := config.NewConfigEnvProvider()
 	client := redis.NewClient(&redis.Options{
-		Addr:     yamlConfig.Redis.Addr + ":" + yamlConfig.Redis.Port,
-		DB:       yamlConfig.Redis.DB,
-		Password: yamlConfig.Redis.Password,
+		Addr:     configProvider.Redis.Addr + ":" + configProvider.Redis.Port,
+		DB:       configProvider.Redis.DB,
+		Password: configProvider.Redis.Password,
 	})
 	// 健康检查
 	re := client.Ping(r.CTX)

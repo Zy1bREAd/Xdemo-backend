@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-
-	conf "xdemo/internal/config"
+	config "xdemo/internal/config"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -36,12 +35,12 @@ func InitK8sClient() {
 		}
 	}()
 	K8sInstance = NewK8s()
-	// 从YAML文件中读取变量配置
-	yamlConfig := conf.LoadConfig()
-	if yamlConfig.K8s.KubeConfig == "" {
-		yamlConfig.K8s.KubeConfig = clientcmd.RecommendedHomeFile
+	// 读取变量配置
+	configProvider := config.NewConfigEnvProvider()
+	if configProvider.K8s.KubeConfig == "" {
+		configProvider.K8s.KubeConfig = clientcmd.RecommendedHomeFile
 	}
-	err := K8sInstance.SetKubeConfig(yamlConfig.K8s.Mode, yamlConfig.K8s.KubeConfig)
+	err := K8sInstance.SetKubeConfig(configProvider.K8s.Mode, configProvider.K8s.KubeConfig)
 	if err != nil {
 		panic(err)
 	}

@@ -5,7 +5,6 @@ import (
 	"log"
 
 	config "xdemo/internal/config"
-
 	global "xdemo/internal/global"
 
 	"gorm.io/driver/mysql"
@@ -160,9 +159,10 @@ func CloseDB() {
 }
 
 // 加载DB
-func LoadDB(yamlConfig *config.YAMLConfig) {
+func LoadDB() {
+	configProvider := config.NewConfigEnvProvider()
 	// 新建mysql连接用作gorm，后期需要抽象出来
-	global.GDB = NewMySQLServer("xdemo", yamlConfig.DataBase.DBName, WithAddr(yamlConfig.DataBase.Host), WithUsername(yamlConfig.DataBase.DBUser), WithPassword(yamlConfig.DataBase.DBPassword), WithPort(yamlConfig.DataBase.Port), WithMaxConn(100), WithMaxRetries(3))
+	global.GDB = NewMySQLServer("xdemo", configProvider.DataBase.DBName, WithAddr(configProvider.DataBase.Host), WithUsername(configProvider.DataBase.DBUser), WithPassword(configProvider.DataBase.DBPassword), WithPort(configProvider.DataBase.Port), WithMaxConn(100), WithMaxRetries(3))
 	// 延迟关闭db连接
 	// defer func() {
 	// 	sqlDB, err := global.GDB.DB()

@@ -59,9 +59,8 @@ func InitDocker() {
 
 func (d *MyDocker) NewDockerClient() *client.Client {
 	// 从环境变量中读取，这很适合容器
-	dockerCfg := config.LoadConfig().Docker
-	fmt.Println(dockerCfg)
-	c, err := client.NewClientWithOpts(client.WithHost(dockerCfg.Host), client.WithVersion(dockerCfg.Version))
+	configProvider := config.NewConfigEnvProvider()
+	c, err := client.NewClientWithOpts(client.WithHost(configProvider.Docker.Host), client.WithVersion(configProvider.Docker.Version))
 	if err != nil {
 		panic(err)
 	}

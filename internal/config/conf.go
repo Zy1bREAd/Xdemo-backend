@@ -1,76 +1,39 @@
 package config
 
 import (
-	"fmt"
-	"os"
-	"runtime"
-
-	"gopkg.in/yaml.v2"
+	"strings"
 )
 
-type YAMLConfig struct {
-	DataBase DataBaseConfig `yaml:"mysql"`
-	System   SystemConfig   `yaml:"system"`
-	Redis    RedisConfig    `yaml:"redis"`
-	Docker   DockerConfig   `yaml:"docker"`
-	K8s      K8sConfig      `yaml:"k8s"`
-}
-
-type SystemConfig struct {
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
-	Env  string `yaml:"env"`
-}
-
-type DataBaseConfig struct {
-	Host       string `yaml:"host"`
-	Port       string `yaml:"port"`
-	DBName     string `yaml:"dbname"`
-	DBUser     string `yaml:"dbuser"`
-	DBPassword string `yaml:"dbpassword"`
-}
-
-type RedisConfig struct {
-	Addr     string `yaml:"addr"`
-	Port     string `yaml:"port"`
-	DB       int    `yaml:"db"`
-	Password string `yaml:"password"`
-	TLS      bool   `yaml:"tls"`
-}
-
-type DockerConfig struct {
-	Host    string `yaml:"host"`
-	Version string `yaml:"version"`
-}
-
-type K8sConfig struct {
-	Mode       int    `yaml:"mode"`
-	KubeConfig string `yaml:"kubeconfig"`
-}
-
-func LoadConfig() *YAMLConfig {
-	currentPath, err := os.Getwd()
-	if err != nil {
-		panic(err)
+func LoadInConfig(mode string) {
+	mode = strings.ToLower(mode)
+	switch mode {
+	case "local":
+		var yamlConfig YAMLConfig
+		yamlConfig.LoadInConfigEnv()
+	case "container":
+		ReadContainerEnv()
 	}
-	fmt.Println(currentPath)
-	systemType := runtime.GOOS
-	// 注意windows和Linux下路径的斜杠问题！
-	var configPath string
-	if systemType == "windows" {
-		configPath = currentPath + "\\settings.yaml"
-	} else if systemType == "linux" {
-		configPath = currentPath + "/settings.yaml"
-	}
-	yf, err := os.ReadFile(configPath)
-	if err != nil {
-		panic(err)
-	}
-	// 解析yaml file到结构体中
-	var Config YAMLConfig
-	err = yaml.Unmarshal(yf, &Config)
-	if err != nil {
-		panic(err)
-	}
-	return &Config
 }
+
+// func ReadContainerEnv() *YAMLConfigProvider {
+// 	return &YAMLConfigProvider{
+// 		DataBase: DataBaseConfig{
+// 			DBUser:     os.Getenv("XDEMO_DB_USER"),
+// 			DBPassword: os.Getenv("XDEMO_DB_PASSWORD"),
+// 			DBName:     os.Getenv("XDEMO_DB_NAME"),
+// 			Host:       os.Getenv("XDEMO_DB_HOST"),
+// 			Port:       os.Getenv("XDEMO_DB_PORT"),
+// 		},
+// 		Redis: RedisConfig{
+// 			Port: os.Getenv("XDEMO_REDIS_PORT"),
+// 			Addr: os.Getenv("XDEMO_REDIS_HOST"),
+// 			// DB: os.Getenv("XDEMO_REDIS_DB"),
+// 			Password: os.Getenv("XDEMO_REDIS_PASSWORD"),
+// 			// TLS: os.Getenv("XDEMO_REDIS_TLS"),
+
+// 		},
+// 	}
+// 	// ac.DataBase.DBName = os.Getenv("XDEMO_DB_NAME")
+// 	// ac.DataBase.Host = os.Getenv("XDEMO_DB_HOST")
+// 	// ac.DataBase.Port = os.Getenv("XDEMO_DB_PORT")
+// }

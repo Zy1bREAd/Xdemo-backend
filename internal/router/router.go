@@ -23,7 +23,7 @@ type FnRegisterRoute func(rgPublic *gin.RouterGroup, rgAuth *gin.RouterGroup)
 var fnRoutes []FnRegisterRoute
 
 // 初始化路由
-func InitRouter(config *config.YAMLConfig) {
+func InitRouter() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
@@ -45,8 +45,10 @@ func InitRouter(config *config.YAMLConfig) {
 	for _, fn := range fnRoutes {
 		fn(rgPublic, rgAuth)
 	}
+	configProvider := config.NewConfigEnvProvider()
 	srv := &http.Server{
-		Addr:    config.System.Host + ":" + config.System.Port,
+		// Addr: config.System().ListenHost().Env() + ":" + config.System().ListenPort().Env(),
+		Addr:    configProvider.System.Host + ":" + configProvider.System.Port,
 		Handler: r,
 	}
 	go func() {
