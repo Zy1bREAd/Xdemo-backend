@@ -5,6 +5,13 @@ pipeline {
     environment {
         // 例如设置项目相关的变量
         PROJECT_NAME = "OceanWang"
+        DOCKER_IMAGE_NAME = "xdemoapp"
+        DOCKER_IMAGE_TAG = "main"
+        HARBOR_URL = "124.220.17.5:8018"
+        HARBOR_PROJECT = "xdemo"
+        GITHUB_REPO_URL = "https://github.com/Zy1bREAd/Xdemo-backend.git"
+        TARGET_SERVER_IP = "10.0.20.5"
+        TARGET_SERVER_USER = "ubuntu"
     }
 
     // 触发构建的条件，这里是当 GitHub 仓库有推送（push）事件时触发
@@ -14,30 +21,35 @@ pipeline {
 
     // 构建步骤
     stages {
-        stage('Checkout') {
+        stage('Checkout GitHub and Pull Code') {
             steps {
                 // 从 GitHub 仓库检出代码
                 checkout([$class: 'GitSCM', 
                           branches: [[name: '*/main']], 
                           userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
+                // 拉取代码
+                git credentialsId: 'GitHub-Token', url: "${GITHUB_REPO_URL}"
             }
         }
-        stage('Build') {
+        stage('Build On Image') {
             steps {
-                // 这里假设是一个基于 Java 的项目，执行构建命令，你需要根据自己项目类型修改
-                sh'echo "test build - 1"' 
+                sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
             }
         }
-        stage('Test') {
+        stage('Push Image') {
+            // 推送镜像到Harbor
+            steps {
+                sh "docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+                sh "docker push ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+            }
+        }
+        stage('Deploy To Server') {
             steps {
                 // 运行测试用例，同样根据项目类型修改
-                sh'echo "run test case - 2"' 
-            }
-        }
-        stage('Deploy') {
-            steps {
-                // 部署步骤，例如将构建好的项目复制到目标服务器等操作，这里只是示例，需要完善
-                sh 'echo "test CD - 3"'
+                sh "echo Autodeploy"
+                script {
+                    sshCommand remote: remote,command: "ls -alth"
+                }
             }
         }
     }
