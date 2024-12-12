@@ -7,7 +7,7 @@ pipeline {
         PROJECT_NAME = "OceanWang"
         DOCKER_IMAGE_NAME = "xdemoapp"
         DOCKER_IMAGE_TAG = "main"
-        HARBOR_URL = "124.220.17.5:8018"
+        HARBOR_URL = "10.0.12.8:8018"
         HARBOR_PROJECT = "xdemo"
         GITHUB_REPO_URL = "https://github.com/Zy1bREAd/Xdemo-backend.git"
         DEVELOP_SERVER_IP = "10.0.20.5"
