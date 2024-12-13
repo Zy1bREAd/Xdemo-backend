@@ -69,7 +69,7 @@ pipeline {
                 script {
                     def remote = [:]
                     remote.name = 'develop-server-01'
-                    remote.host = "${SERVER_IP}"
+                    remote.host = "${DEVELOP_SERVER_IP}"
                     remote.allowAnyHosts = true
                     withCredentials([usernamePassword(credentialsId: 'harbor_robot_account', passwordVariable: 'harbor_robot_token', usernameVariable: 'harbor_robot_account'), usernamePassword(credentialsId: 'ssh-for-password-10.0.20.5', passwordVariable: 'dev_server_pwd', usernameVariable: 'dev_server_user')]) {
                         // 设置ssh server的login info
@@ -82,27 +82,27 @@ pipeline {
                 }
             }
         }
-        stage('Deploy To Production Env') {
-            when {
-                branch 'prod'
-            }
-            steps {
-                 script {
-                    def remote = [:]
-                    remote.name = 'develop-server-01'
-                    remote.host = "${SERVER_IP}"
-                    remote.allowAnyHosts = true
-                    withCredentials([usernamePassword(credentialsId: 'harbor_robot_account', passwordVariable: 'harbor_robot_token', usernameVariable: 'harbor_robot_account'), usernamePassword(credentialsId: 'ssh-for-password-10.0.20.5', passwordVariable: 'dev_server_pwd', usernameVariable: 'dev_server_user')]) {
-                        // 设置ssh server的login info
-                        remote.user = "${dev_server_user}"
-                        remote.password = "${dev_server_pwd}"
-                        // 登录Harbor后在run
-                        sshCommand remote: remote, command: "sudo docker login ${HARBOR_URL} -u ${harbor_robot_account} -p ${harbor_robot_token}"
-                        sshCommand remote: remote, command: "sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp"
-                    }
-                }
-            }
-        }
+        // stage('Deploy To Production Env') {
+        //     when {
+        //         branch 'prod'
+        //     }
+        //     steps {
+        //          script {
+        //             def remote = [:]
+        //             remote.name = 'develop-server-01'
+        //             remote.host = "${DEVELOP_SERVER_IP}"
+        //             remote.allowAnyHosts = true
+        //             withCredentials([usernamePassword(credentialsId: 'harbor_robot_account', passwordVariable: 'harbor_robot_token', usernameVariable: 'harbor_robot_account'), usernamePassword(credentialsId: 'ssh-for-password-10.0.20.5', passwordVariable: 'dev_server_pwd', usernameVariable: 'dev_server_user')]) {
+        //                 // 设置ssh server的login info
+        //                 remote.user = "${dev_server_user}"
+        //                 remote.password = "${dev_server_pwd}"
+        //                 // 登录Harbor后在run
+        //                 sshCommand remote: remote, command: "sudo docker login ${HARBOR_URL} -u ${harbor_robot_account} -p ${harbor_robot_token}"
+        //                 sshCommand remote: remote, command: "sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp"
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     // 构建后操作，如发送通知等
