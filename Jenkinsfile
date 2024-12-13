@@ -9,10 +9,12 @@ pipeline {
         DOCKER_IMAGE_TAG = "main"
         HARBOR_URL = "oceanwang.hub"
         HARBOR_PROJECT = "library"
+        HARBOR_USER = "admin"
+        HARBOR_PASSWORD = "Manuel6639963"
         GITHUB_REPO_URL = "https://github.com/Zy1bREAd/Xdemo-backend.git"
-        DEVELOP_SERVER_IP = "10.0.12.8"
+        DEVELOP_SERVER_IP = "10.0.20.5"
         DEVELOP_SERVER_USER = "ubuntu"
-        DEVELOP_SERVER_CRED_ID = "ssh-10.0.12.8"
+        DEVELOP_SERVER_CRED_ID = "ssh-for-password-10.0.20.5"
     }
 
     // 触发构建的条件，这里是当 GitHub 仓库有推送（push）事件时触发
@@ -63,6 +65,7 @@ pipeline {
                 sh "echo Autodeploy"
                 sshagent(["${DEVELOP_SERVER_CRED_ID}"]) {
                     // 登录Harbor
+                    sh "ssh ${SERVER_USER}@${SERVER_IP} 'sudo docker login ${HARBOR_URL} -u ${HARBOR_USER} -p${HARBOR_PASSWORD}'"
                     sh "ssh ${SERVER_USER}@${SERVER_IP} 'sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp'"
                 }
             }
@@ -75,6 +78,7 @@ pipeline {
                 // 运行测试用例，同样根据项目类型修改
                 sh "echo Autodeploy"
                 sshagent(["${DEVELOP_SERVER_CRED_ID}"]) {
+                    sh "ssh ${SERVER_USER}@${SERVER_IP} 'sudo docker login ${HARBOR_URL} -u ${HARBOR_USER} -p${HARBOR_PASSWORD}'"
                     sh "ssh ${SERVER_USER}@${SERVER_IP} 'sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp'"
                 }
                 // script {
