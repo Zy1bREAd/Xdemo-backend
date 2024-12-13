@@ -66,17 +66,20 @@ pipeline {
                 branch 'main'
             }
             steps {
-                // 运行测试用例，同样根据项目类型修改
-                sh "echo Autodeploy"
-                withCredentials([usernamePassword(credentialsId: 'harbor_robot_account', passwordVariable: 'harbor_robot_token', usernameVariable: 'harbor_robot_account')]) {
-                    
-                    sshagent(credentials: ["${DEVELOP_SERVER_CRED_ID}"]) {
-                        // 登录Harbor
-                        sh "ssh ${SERVER_USER}@${SERVER_IP} 'sudo docker login ${HARBOR_URL} -u ${harbor_robot_account} -p ${harbor_robot_token}'"
-                        sh "ssh ${SERVER_USER}@${SERVER_IP} 'sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp'"
+                script {
+                    def remote = [:]
+                    remote.name = 'develop-server-01'
+                    remote.host = "${SERVER_IP}"
+                    remote.allowAnyHosts = true
+                    withCredentials([usernamePassword(credentialsId: 'harbor_robot_account', passwordVariable: 'harbor_robot_token', usernameVariable: 'harbor_robot_account'), usernamePassword(credentialsId: 'ssh-for-password-10.0.20.5', passwordVariable: 'dev_server_pwd', usernameVariable: 'dev_server_user')]) {
+                        // 设置ssh server的login info
+                        remote.user = "${dev_server_user}"
+                        remote.password = "${dev_server_pwd}"
+                        // 登录Harbor后在run
+                        sshCommand remote: remote, command: "sudo docker login ${HARBOR_URL} -u ${harbor_robot_account} -p ${harbor_robot_token}"
+                        sshCommand remote: remote, command: "sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp"
                     }
                 }
-
             }
         }
         stage('Deploy To Production Env') {
@@ -84,19 +87,20 @@ pipeline {
                 branch 'prod'
             }
             steps {
-                // 运行测试用例，同样根据项目类型修改
-                sh "echo Autodeploy - 2 "
-                withCredentials([usernamePassword(credentialsId: 'harbor_robot_account', passwordVariable: 'harbor_robot_token', usernameVariable: 'harbor_robot_account')]) {
-                    
-                    sshagent(credentials: ["${DEVELOP_SERVER_CRED_ID}"]) {
-                        // 登录Harbor
-                        sh "ssh ${SERVER_USER}@${SERVER_IP} 'sudo docker login ${HARBOR_URL} -u ${harbor_robot_account} -p ${harbor_robot_token}'"
-                        sh "ssh ${SERVER_USER}@${SERVER_IP} 'sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp'"
+                 script {
+                    def remote = [:]
+                    remote.name = 'develop-server-01'
+                    remote.host = "${SERVER_IP}"
+                    remote.allowAnyHosts = true
+                    withCredentials([usernamePassword(credentialsId: 'harbor_robot_account', passwordVariable: 'harbor_robot_token', usernameVariable: 'harbor_robot_account'), usernamePassword(credentialsId: 'ssh-for-password-10.0.20.5', passwordVariable: 'dev_server_pwd', usernameVariable: 'dev_server_user')]) {
+                        // 设置ssh server的login info
+                        remote.user = "${dev_server_user}"
+                        remote.password = "${dev_server_pwd}"
+                        // 登录Harbor后在run
+                        sshCommand remote: remote, command: "sudo docker login ${HARBOR_URL} -u ${harbor_robot_account} -p ${harbor_robot_token}"
+                        sshCommand remote: remote, command: "sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp"
                     }
                 }
-                // script {
-                //     sshCommand remote: remote,command: "ls -alth"
-                // }
             }
         }
     }
