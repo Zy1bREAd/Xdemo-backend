@@ -7,6 +7,7 @@ pipeline {
         PROJECT_NAME = "OceanWang"
         CONTAINER_NAME = "xdemo_app"
         DOCKER_IMAGE_NAME = "xdemoapp"
+        DOCKER_IMAGE_TAG = "test-v0.1.5"
         HARBOR_URL = "oceanwang.hub"
         HARBOR_PROJECT = "library"
         GITHUB_REPO_URL = "https://github.com/Zy1bREAd/Xdemo-backend.git"
@@ -19,22 +20,25 @@ pipeline {
     stages {
         stage('Checkout GitHub Branch and Pull Code') {
             steps {
+                // script {
+                //     // 从 GitHub 仓库检出代码
+                //     if (env.GIT_TAG){
+                //         // 检索tag的触发
+                //         checkout([$class: 'GitSCM', 
+                //             branches: [[name: "*/${env.GIT_TAG}"]], 
+                //             userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
+                //         def DOCKER_IMAGE_TAG = ${env.GIT_TAG}
+                //     }else if (env.GIT_BRANCH){
+                //         checkout([$class: 'GitSCM', 
+                //             branches: [[name: "*/${env.GIT_BRANCH}"]], 
+                //             userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
+                //         def DOCKER_IMAGE_TAG = ${env.GIT_BRANCH}
+                //     }else {
+                //         error("无法确定是Tag还是Branch触发构建JOB")
+                //     }
+                // }
                 script {
-                    // 从 GitHub 仓库检出代码
-                    if (env.GIT_TAG){
-                        // 检索tag的触发
-                        checkout([$class: 'GitSCM', 
-                            branches: [[name: "*/${env.GIT_TAG}"]], 
-                            userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
-                        def DOCKER_IMAGE_TAG = ${env.GIT_TAG}
-                    }else if (env.GIT_BRANCH){
-                        checkout([$class: 'GitSCM', 
-                            branches: [[name: "*/${env.GIT_BRANCH}"]], 
-                            userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
-                        def DOCKER_IMAGE_TAG = ${env.GIT_BRANCH}
-                    }else {
-                        error("无法确定是Tag还是Branch触发构建JOB")
-                    }
+                    echo "${env}"
                 }
             }
         }
