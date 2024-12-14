@@ -38,7 +38,7 @@ pipeline {
                 //     }
                 // }
                 script {
-                    echo "${env}"
+                    echo "${env},${env.GIT_BRANCH},${env.GIT_TAG}"
                 }
             }
         }
@@ -50,9 +50,6 @@ pipeline {
             }
         }
         stage('Build On Image For Develop') {
-            when {
-                branch 'main'
-            }
             steps {
                 
                 sh "sudo docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
@@ -66,9 +63,6 @@ pipeline {
             }
         }
         stage('Deploy To Develop Env') {
-            when {
-                branch 'main'
-            }
             steps {
                 script {
                     def remote = [:]
