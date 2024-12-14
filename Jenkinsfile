@@ -16,20 +16,24 @@ pipeline {
         DEVELOP_SERVER_CRED_ID = "ssh-for-password-10.0.20.5"
     }
 
-    // 触发构建的条件，这里是当 GitHub 仓库有推送（push）事件时触发
-    // triggers {
-    //     githubPush()
-    // }
-
     // 构建步骤
     stages {
         stage('Checkout GitHub Branch and Pull Code') {
             steps {
                 // 从 GitHub 仓库检出代码
-                // please test
-                checkout([$class: 'GitSCM', 
-                        branches: [[name: '*/main']], 
+                if (env.GIT_TAG){
+                    // 检索tag的触发
+                    checkout([$class: 'GitSCM', 
+                        branches: [[name: "*/${env.GIT_TAG}"]], 
                         userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
+                }else if (env.GIT_BRANCH){
+                checkout([$class: 'GitSCM', 
+                        branches: [[name: "*/${env.GIT_BRANCH}"]], 
+                        userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
+                }else {
+                    error("无法确定是Tag还是Branch触发构建JOB")
+                }
+
             }
         }
         stage('Login Image Registry') {
@@ -56,9 +60,9 @@ pipeline {
             }
         }
         stage('Deploy To Develop Env') {
-            // when {
-            //     branch 'main'
-            // }
+            when {
+                branch 'main'
+            }
             steps {
                 script {
                     def remote = [:]
