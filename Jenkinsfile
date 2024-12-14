@@ -5,6 +5,7 @@ pipeline {
     environment {
         // 例如设置项目相关的变量
         PROJECT_NAME = "OceanWang"
+        CONTAINER_NAME = "xdemo_app"
         DOCKER_IMAGE_NAME = "xdemoapp"
         DOCKER_IMAGE_TAG = "main"
         HARBOR_URL = "oceanwang.hub"
@@ -46,14 +47,6 @@ pipeline {
                 sh "sudo docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
             }
         }
-        stage('Build On Image For Production') {
-            when {
-                branch 'prod'
-            }
-            steps {
-                sh "sudo docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
-            }
-        }
         stage('Push Image') {
             // 推送镜像到Harbor
             steps {
@@ -75,34 +68,15 @@ pipeline {
                         // 设置ssh server的login info
                         remote.user = "${dev_server_user}"
                         remote.password = "${dev_server_pwd}"
-                        // 登录Harbor后在run
+                        // 登录Harbor
                         sshCommand remote: remote, command: "sudo docker login ${HARBOR_URL} -u ${harbor_robot_account} -p ${harbor_robot_token}"
-                        sshCommand remote: remote, command: "sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp"
+                        // 停止并删除之前的容器
+                        sshCommand remote: remote, command: "sudo docker stop ${CONTAINER_NAME} && sudo docker rm ${CONTAINER_NAME}"
+                        sshCommand remote: remote, command: "sudo docker run -itd --name=${CONTAINER_NAME} ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                     }
                 }
             }
         }
-        // stage('Deploy To Production Env') {
-        //     when {
-        //         branch 'prod'
-        //     }
-        //     steps {
-        //          script {
-        //             def remote = [:]
-        //             remote.name = 'develop-server-01'
-        //             remote.host = "${DEVELOP_SERVER_IP}"
-        //             remote.allowAnyHosts = true
-        //             withCredentials([usernamePassword(credentialsId: 'harbor_robot_account', passwordVariable: 'harbor_robot_token', usernameVariable: 'harbor_robot_account'), usernamePassword(credentialsId: 'ssh-for-password-10.0.20.5', passwordVariable: 'dev_server_pwd', usernameVariable: 'dev_server_user')]) {
-        //                 // 设置ssh server的login info
-        //                 remote.user = "${dev_server_user}"
-        //                 remote.password = "${dev_server_pwd}"
-        //                 // 登录Harbor后在run
-        //                 sshCommand remote: remote, command: "sudo docker login ${HARBOR_URL} -u ${harbor_robot_account} -p ${harbor_robot_token}"
-        //                 sshCommand remote: remote, command: "sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp"
-        //             }
-        //         }
-        //     }
-        // }
     }
 
     // 构建后操作，如发送通知等
@@ -120,9 +94,4 @@ pipeline {
     //                 to: 'your-email@example.com'
     //     }
     // }
-}
-
-// 定义多分支流水线
-def developPipeline() {
-    
 }
