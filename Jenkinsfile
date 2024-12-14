@@ -20,20 +20,21 @@ pipeline {
     stages {
         stage('Checkout GitHub Branch and Pull Code') {
             steps {
-                // 从 GitHub 仓库检出代码
-                if (env.GIT_TAG){
-                    // 检索tag的触发
+                script {
+                    // 从 GitHub 仓库检出代码
+                    if (env.GIT_TAG){
+                        // 检索tag的触发
+                        checkout([$class: 'GitSCM', 
+                            branches: [[name: "*/${env.GIT_TAG}"]], 
+                            userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
+                    }else if (env.GIT_BRANCH){
                     checkout([$class: 'GitSCM', 
-                        branches: [[name: "*/${env.GIT_TAG}"]], 
-                        userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
-                }else if (env.GIT_BRANCH){
-                checkout([$class: 'GitSCM', 
-                        branches: [[name: "*/${env.GIT_BRANCH}"]], 
-                        userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
-                }else {
-                    error("无法确定是Tag还是Branch触发构建JOB")
+                            branches: [[name: "*/${env.GIT_BRANCH}"]], 
+                            userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
+                    }else {
+                        error("无法确定是Tag还是Branch触发构建JOB")
+                    }
                 }
-
             }
         }
         stage('Login Image Registry') {
