@@ -15,19 +15,13 @@ pipeline {
         DEVELOP_SERVER_CRED_ID = "ssh-for-password-10.0.20.5"
     }
 
-    // 触发构建的条件，这里是当 GitHub 仓库有推送（push）事件时触发
-    // triggers {
-    //     githubPush()
-    // }
-
     // 构建步骤
     stages {
         stage('Checkout GitHub Branch and Pull Code') {
             steps {
-                // 从 GitHub 仓库检出代码
-                checkout([$class: 'GitSCM', 
-                        branches: [[name: '*/main|*/develop|*/release-*|*/feature-*|*/v*']], 
-                        userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
+                script {
+                    echo "${env.GIT_TAG},${env.GIT_BRANCH}"
+                }
             }
         }
         stage('Login Image Registry') {
@@ -82,27 +76,6 @@ pipeline {
                 }
             }
         }
-        // stage('Deploy To Production Env') {
-        //     when {
-        //         branch 'prod'
-        //     }
-        //     steps {
-        //          script {
-        //             def remote = [:]
-        //             remote.name = 'develop-server-01'
-        //             remote.host = "${DEVELOP_SERVER_IP}"
-        //             remote.allowAnyHosts = true
-        //             withCredentials([usernamePassword(credentialsId: 'harbor_robot_account', passwordVariable: 'harbor_robot_token', usernameVariable: 'harbor_robot_account'), usernamePassword(credentialsId: 'ssh-for-password-10.0.20.5', passwordVariable: 'dev_server_pwd', usernameVariable: 'dev_server_user')]) {
-        //                 // 设置ssh server的login info
-        //                 remote.user = "${dev_server_user}"
-        //                 remote.password = "${dev_server_pwd}"
-        //                 // 登录Harbor后在run
-        //                 sshCommand remote: remote, command: "sudo docker login ${HARBOR_URL} -u ${harbor_robot_account} -p ${harbor_robot_token}"
-        //                 sshCommand remote: remote, command: "sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp"
-        //             }
-        //         }
-        //     }
-        // }
     }
 
     // 构建后操作，如发送通知等
@@ -120,9 +93,4 @@ pipeline {
     //                 to: 'your-email@example.com'
     //     }
     // }
-}
-
-// 定义多分支流水线
-def developPipeline() {
-    
 }
