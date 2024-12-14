@@ -26,6 +26,7 @@ pipeline {
         stage('Checkout GitHub Branch and Pull Code') {
             steps {
                 // 从 GitHub 仓库检出代码
+                // please test
                 checkout([$class: 'GitSCM', 
                         branches: [[name: '*/main']], 
                         userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
@@ -55,9 +56,9 @@ pipeline {
             }
         }
         stage('Deploy To Develop Env') {
-            when {
-                branch 'main'
-            }
+            // when {
+            //     branch 'main'
+            // }
             steps {
                 script {
                     def remote = [:]
