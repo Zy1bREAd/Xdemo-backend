@@ -26,7 +26,7 @@ pipeline {
             steps {
                 // 从 GitHub 仓库检出代码
                 checkout([$class: 'GitSCM', 
-                        branches: [[name: '*/main']], 
+                        branches: [[name: '*/main|*/develop|*/release-*|*/feature-*|*/v*']], 
                         userRemoteConfigs: [[url: 'https://github.com/Zy1bREAd/Xdemo-backend.git']]])
             }
         }
