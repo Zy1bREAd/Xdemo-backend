@@ -13,7 +13,6 @@ import (
 const DeafultExpireWithRedis int = 60 * 24
 
 type MyRedis struct {
-	CTX context.Context
 	// Addr     string
 	// Password string
 	// DB       int
@@ -34,9 +33,7 @@ func InitRedis() {
 
 func NewMyRedis() *MyRedis {
 	if RedisInstance == nil {
-		RedisInstance = &MyRedis{
-			CTX: context.Background(),
-		}
+		RedisInstance = &MyRedis{}
 	}
 	return RedisInstance
 }
@@ -50,7 +47,8 @@ func (r *MyRedis) NewRedisClient() *redis.Client {
 		Password: configProvider.Redis.Password,
 	})
 	// 健康检查
-	re := client.Ping(r.CTX)
+	ctx := context.Background()
+	re := client.Ping(ctx)
 	if _, err := re.Result(); err != nil {
 		log.Println("连接Redis出现错误 ", err)
 		return nil
@@ -59,7 +57,7 @@ func (r *MyRedis) NewRedisClient() *redis.Client {
 	return client
 }
 
-func (r *MyRedis) SetKey(k string, v any, expireMin ...any) error {
+func (r *MyRedis) SetKey(ctx context.Context, k string, v any, expireMin ...any) error {
 	expiration := time.Duration(DeafultExpireWithRedis * int(time.Minute))
 	if len(expireMin) > 0 {
 		// 判断传入的过期时间是int还是time.duration类型
@@ -70,18 +68,18 @@ func (r *MyRedis) SetKey(k string, v any, expireMin ...any) error {
 		}
 	}
 
-	return RDBClient.Set(r.CTX, k, v, expiration).Err()
+	return RDBClient.Set(ctx, k, v, expiration).Err()
 }
 
-func (r *MyRedis) GetKey(k string) (string, error) {
-	return RDBClient.Get(r.CTX, k).Result()
+func (r *MyRedis) GetKey(ctx context.Context, k string) (string, error) {
+	return RDBClient.Get(ctx, k).Result()
 }
 
-func (r *MyRedis) DelKey(k string) error {
-	return RDBClient.Del(r.CTX, k).Err()
+func (r *MyRedis) DelKey(ctx context.Context, k string) error {
+	return RDBClient.Del(ctx, k).Err()
 }
 
 // 以秒为单位
-func (r *MyRedis) CheckExpiration(k string) (time.Duration, error) {
-	return RDBClient.TTL(r.CTX, k).Result()
+func (r *MyRedis) CheckExpiration(ctx context.Context, k string) (time.Duration, error) {
+	return RDBClient.TTL(ctx, k).Result()
 }

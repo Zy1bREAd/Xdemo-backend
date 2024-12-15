@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -39,7 +40,7 @@ func (mycc *MyCaptcha) CreateCaptchaImage(w io.Writer) (string, error) {
 	// rdb := robj.NewRedisClient()
 	randKey := GenerateRandKey()
 	// 设置1分半过期时间的验证码key-value,key使用伪随机数
-	err = RedisInstance.SetKey(randKey, ccData.Text, 90*time.Second)
+	err = RedisInstance.SetKey(context.Background(), randKey, ccData.Text, 90*time.Second)
 	if err != nil {
 		log.Println("存储验证码时出现错误", err)
 		return "", err

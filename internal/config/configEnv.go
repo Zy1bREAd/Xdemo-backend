@@ -76,6 +76,7 @@ func InitConfigEnv() {
 	default:
 		panic(fmt.Errorf("暂不支持其他App启动模式"))
 	}
+	fmt.Println("App Start Mode: ", appMode)
 }
 
 var appConfigEnv ConfigEnv

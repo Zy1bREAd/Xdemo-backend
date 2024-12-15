@@ -41,7 +41,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		ri := api.NewMyRedis()
 		userID := strconv.FormatUint(uint64(tokenClaim.UserID), 10)
 		tokenKeyName := USER_LOGIN_TOKEN_KEY_PREFIX + userID
-		userToken, err := ri.GetKey(tokenKeyName)
+		userToken, err := ri.GetKey(ctx, tokenKeyName)
 		log.Println(USER_LOGIN_TOKEN_KEY_PREFIX + userID)
 		if err != nil {
 			respMsg := "鉴权失败，不存在该用户的Token"
@@ -57,7 +57,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 		// 检查过期时间以及给予续签
-		tokenExpiration, err := ri.CheckExpiration(tokenKeyName)
+		tokenExpiration, err := ri.CheckExpiration(ctx, tokenKeyName)
 		// fmt.Println(tokenExpiration.Nanoseconds())
 		if err != nil || (int(tokenExpiration.Seconds()) <= 0 && tokenExpiration.Nanoseconds() != -1) {
 			respMsg := "鉴权失败，Token已过期或不存在"
@@ -73,7 +73,7 @@ func AuthMiddleware() gin.HandlerFunc {
 				ctx.Abort()
 				return
 			}
-			ri.SetKey(tokenKeyName, newToken)
+			ri.SetKey(ctx, tokenKeyName, newToken)
 			ctx.Header(TokenHeader, TokenPrefix+newToken)
 			log.Println("续签Token成功")
 		}

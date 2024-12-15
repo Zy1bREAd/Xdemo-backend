@@ -48,7 +48,7 @@ func UserLogin(ctx *gin.Context) {
 		return
 	}
 	// 校验验证码
-	val, err := api.RedisInstance.GetKey(user.RK)
+	val, err := api.RedisInstance.GetKey(ctx, user.RK)
 	switch {
 	case err == redis.Nil:
 		log.Println("验证码Key不存在")
@@ -75,7 +75,7 @@ func UserLogin(ctx *gin.Context) {
 		log.Println("创建Token时发生内部错误")
 		panic(err)
 	}
-	err = api.RedisInstance.SetKey(middleware.USER_LOGIN_TOKEN_KEY_PREFIX+strconv.Itoa(int(user.ID)), tokenStr)
+	err = api.RedisInstance.SetKey(ctx, middleware.USER_LOGIN_TOKEN_KEY_PREFIX+strconv.Itoa(int(user.ID)), tokenStr)
 	if err != nil {
 		log.Println("存储User Token时发生内部错误")
 		panic(err)
