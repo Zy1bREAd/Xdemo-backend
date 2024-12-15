@@ -62,7 +62,6 @@ pipeline {
                 }
             }
             steps {
-                
                 sh "echo 'Enter Prod Pipeline for Build image.'"
             }
         }
