@@ -5,6 +5,7 @@ pipeline {
     environment {
         // 例如设置项目相关的变量
         PROJECT_NAME = "OceanWang"
+        CONTAINER_NAME = "xdemo_app"
         DOCKER_IMAGE_NAME = "xdemoapp"
         DOCKER_IMAGE_TAG = "main"
         HARBOR_URL = "oceanwang.hub"
@@ -24,6 +25,7 @@ pipeline {
                 }
             }
         }
+        // 登录Harbor镜像仓库
         stage('Login Image Registry') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'harbor_robot_account', passwordVariable: 'harbor_robot_token', usernameVariable: 'harbor_robot_account')]) {
@@ -31,20 +33,13 @@ pipeline {
                 }
             }
         }
+        // 构建镜像在dev环境
         stage('Build On Image For Develop') {
             when {
-                branch 'main'
+                expression { "${env.GIT_BRANCH}" =~ /(main|^release-.*)/ }
             }
             steps {
                 
-                sh "sudo docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
-            }
-        }
-        stage('Build On Image For Production') {
-            when {
-                branch 'prod'
-            }
-            steps {
                 sh "sudo docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
             }
         }
@@ -57,7 +52,7 @@ pipeline {
         }
         stage('Deploy To Develop Env') {
             when {
-                branch 'main'
+                expression { "${env.GIT_BRANCH}" =~ /(main|^release-.*)/ }
             }
             steps {
                 script {
@@ -69,9 +64,11 @@ pipeline {
                         // 设置ssh server的login info
                         remote.user = "${dev_server_user}"
                         remote.password = "${dev_server_pwd}"
-                        // 登录Harbor后在run
+                        // 登录Harbor
                         sshCommand remote: remote, command: "sudo docker login ${HARBOR_URL} -u ${harbor_robot_account} -p ${harbor_robot_token}"
-                        sshCommand remote: remote, command: "sudo docker run -itd ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} --name xdemo_app xdemoapp"
+                        // 停止并删除之前的容器
+                        "if [ -n "$(sudo docker ps -a -q --filter "name=${CONTAINER_NAME}")" ];then sudo docker stop ${CONTAINER_NAME} && sudo docker rm ${CONTAINER_NAME};else echo 'container is not exits';fi"
+                        sshCommand remote: remote, command: "sudo docker run -itd --name=${CONTAINER_NAME} ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                     }
                 }
             }
