@@ -12,7 +12,8 @@ ENV XDEMO_SYSTEM_MODE=container \
 COPY . .
 # 正常应该由一个地方copy过来，而不是放在git上面
 # RUN mkdir -p /root/.kube && cp secret/config /root/.kube/config && cp -rf secret/home /
-RUN mkdir /root/hello
+COPY ./secret/config /root/.kube/config
+COPY ./secret/home /
 RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 RUN go build -o xdemoapp
