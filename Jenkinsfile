@@ -54,7 +54,7 @@ pipeline {
         }
 
         // 构建镜像在prod环境
-        stage('Build On Image For Develop') {
+        stage('Build On Image For Production') {
             when {
                 anyOf {
                     expression { "${env.GIT_BRANCH}" =~ /(^release-v.*)/ }
