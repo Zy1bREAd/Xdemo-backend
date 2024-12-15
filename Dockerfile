@@ -11,7 +11,8 @@ ENV XDEMO_SYSTEM_MODE=container \
 # 拷贝当前git目录所有内容到/app下
 COPY . .
 # 正常应该由一个地方copy过来，而不是放在git上面
-RUN mkdir -p /root/.kube && cp secret/config /root/.kube/config && cp -rf secret/home /
+# RUN mkdir -p /root/.kube && cp secret/config /root/.kube/config && cp -rf secret/home /
+RUN mkdir /root/hello
 RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 RUN go build -o xdemoapp
