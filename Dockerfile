@@ -7,8 +7,9 @@ ENV XDEMO_SYSTEM_HOST=0.0.0.0 XDEMO_SYSTEM_PORT=7077 XDEMO_SYSTEM_ENV=container 
     XDEMO_DOCKER_HOST=tcp://10.0.20.5:5732 XDEMO_DOCKER_VERSION=1.43 \
     XDEMO_K8S_MODE=2 XDEMO_K8S_KUBECONFIG=
 COPY . .
-RUN mkdir ~/.kube
-COPY ./secret ~/.kube
+RUN mkdir -p /root/.kube
+# 正常应该由一个地方copy过来，而不是放在git上面
+COPY ./secret /root/.kube
 RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 RUN go build -o xdemoapp
