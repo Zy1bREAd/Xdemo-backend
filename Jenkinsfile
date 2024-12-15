@@ -94,7 +94,7 @@ pipeline {
                         // 停止并删除之前的容器
                         sshCommand remote: remote, command: "if [ -n \"\$(sudo docker ps -a -q --filter name=${CONTAINER_NAME})\" ];then sudo docker stop ${CONTAINER_NAME} && sudo docker rm ${CONTAINER_NAME};else echo 'Container is not exist';fi"
                         
-                        sshCommand remote: remote, command: "sudo docker run -itd --name=${CONTAINER_NAME} ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+                        sshCommand remote: remote, command: "sudo docker run -itd -p 7077:7077 --name=${CONTAINER_NAME} ${HARBOR_URL}/${HARBOR_PROJECT}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                     }
                 }
             }

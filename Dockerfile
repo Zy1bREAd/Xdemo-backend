@@ -11,11 +11,11 @@ ENV XDEMO_SYSTEM_HOST=0.0.0.0 XDEMO_SYSTEM_PORT=7077 XDEMO_SYSTEM_ENV=container 
 COPY . .
 RUN mkdir -p /root/.kube
 # 正常应该由一个地方copy过来，而不是放在git上面
-RUN ls -al /app
-RUN ls -al && pwd
-COPY ./secret /root/.kube
+COPY ./secret/config /root/.kube/config
+COPY ./secret/home /
 RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 RUN go build -o xdemoapp
+# APP 访问端口
 EXPOSE 7077
 CMD ["/app/xdemoapp"]
