@@ -59,6 +59,7 @@ func NewConfigEnvProvider() AppConfigEnv {
 
 // 指定方式读取ConfigEnv
 func InitConfigEnv() {
+	// 通过环境变量判断当前App启动mode
 	appMode := os.Getenv("XDEMO_SYSTEM_MODE")
 	appMode = strings.ToLower(appMode)
 	if appMode == "" {
