@@ -6,8 +6,6 @@ pipeline {
         // 例如设置项目相关的变量
         PROJECT_NAME = "OceanWang"
         CONTAINER_NAME = "xdemo_app"
-        DOCKER_IMAGE_NAME = "xdemoapp"
-        DOCKER_IMAGE_TAG = "main"
         HARBOR_URL = "oceanwang.hub"
         HARBOR_PROJECT = "library"
         GITHUB_REPO_URL = "https://github.com/Zy1bREAd/Xdemo-backend.git"
@@ -21,7 +19,15 @@ pipeline {
         stage('Checkout GitHub Branch and Pull Code') {
             steps {
                 script {
-                    echo "${env.GIT_TAG},${env.GIT_BRANCH}"
+                    if (env.GIT_BRANCH){
+                        DOCKER_IMAGE_NAME = "xdemoapp"
+                        DOCKER_IMAGE_TAG = "${env.GIT_BRANCH}"
+                    }else if (env.GIT_TAG){
+                        DOCKER_IMAGE_NAME = "xdemoapp"
+                        DOCKER_IMAGE_TAG = "${env.GIT_TAG}"
+                    }else {
+                        echo "无法识别当前分支或标签"
+                    }
                 }
             }
         }
@@ -36,11 +42,28 @@ pipeline {
         // 构建镜像在dev环境
         stage('Build On Image For Develop') {
             when {
-                expression { "${env.GIT_BRANCH}" =~ /(main|^release-.*)/ }
+                anyOf {
+                    expression { "${env.GIT_BRANCH}" =~ /(main)/ }
+                    expression { "${env.GIT_TAG}" =~ /(^v.*)/ }
+                }
             }
             steps {
                 
                 sh "sudo docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
+            }
+        }
+
+        // 构建镜像在prod环境
+        stage('Build On Image For Develop') {
+            when {
+                anyOf {
+                    expression { "${env.GIT_BRANCH}" =~ /(^release-v.*)/ }
+                    expression { "${env.GIT_TAG}" =~ /(^release-v.*)/ }
+                }
+            }
+            steps {
+                
+                sh "echo 'Enter Prod Pipeline for Build image.'"
             }
         }
         stage('Push Image') {
@@ -52,7 +75,10 @@ pipeline {
         }
         stage('Deploy To Develop Env') {
             when {
-                expression { "${env.GIT_BRANCH}" =~ /(main|^release-.*)/ }
+                anyOf {
+                    expression { "${env.GIT_BRANCH}" =~ /(main)/ }
+                    expression { "${env.GIT_TAG}" =~ /(^v.*)/ }
+                }
             }
             steps {
                 script {

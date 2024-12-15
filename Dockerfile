@@ -6,10 +6,12 @@ ENV XDEMO_SYSTEM_HOST=0.0.0.0 XDEMO_SYSTEM_PORT=7077 XDEMO_SYSTEM_ENV=container 
     XDEMO_REDIS_ADDR=10.0.20.5 XDEMO_REDIS_PORT=6379 XDEMO_REDIS_DB=0 XDEMO_REDIS_PASSWORD=  XDEMO_REDIS_TLS=false \
     XDEMO_DOCKER_HOST=tcp://10.0.20.5:5732 XDEMO_DOCKER_VERSION=1.43 \
     XDEMO_K8S_MODE=2 XDEMO_K8S_KUBECONFIG=
+
+# 拷贝当前git目录所有内容到/app下
 COPY . .
 RUN mkdir -p /root/.kube
 # 正常应该由一个地方copy过来，而不是放在git上面
-COPY ./secret /root/.kube
+COPY /app/secret /root/.kube
 RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 RUN go build -o xdemoapp
