@@ -57,6 +57,11 @@ func (r *MyRedis) NewRedisClient() *redis.Client {
 	return client
 }
 
+func (r *MyRedis) Ping(ctx context.Context) error {
+	_, err := RDBClient.Ping(ctx).Result()
+	return err
+}
+
 func (r *MyRedis) SetKey(ctx context.Context, k string, v any, expireMin ...any) error {
 	expiration := time.Duration(DeafultExpireWithRedis * int(time.Minute))
 	if len(expireMin) > 0 {

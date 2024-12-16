@@ -155,6 +155,7 @@ func (cc *ContainerConfig) LoadInConfigEnv() {
 			}
 		}
 	}
+	appConfigEnv = cc
 }
 
 func (cc *ContainerConfig) GetAppConfigEnv() AppConfigEnv {

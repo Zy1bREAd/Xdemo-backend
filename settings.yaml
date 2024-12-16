@@ -25,3 +25,6 @@ docker:
 k8s:
   mode: 2   # 1 = masterURL , 2 = kubeconfig
   kubeconfig: ""
+
+queue:
+  
