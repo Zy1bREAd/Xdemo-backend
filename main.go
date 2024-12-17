@@ -26,7 +26,7 @@ func main() {
 	config.InitConfigEnv()
 	db.LoadDB()
 	api.InitRedis()
-	// api.InitQueue()
+	api.InitQueue()
 	api.InitDocker()
 	api.InitK8sClient()
 

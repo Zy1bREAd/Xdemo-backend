@@ -26,5 +26,6 @@ k8s:
   mode: 2   # 1 = masterURL , 2 = kubeconfig
   kubeconfig: ""
 
-queue:
-  
+task_queue:
+  provider: redis
+  processer: 3

@@ -88,3 +88,12 @@ func (r *MyRedis) DelKey(ctx context.Context, k string) error {
 func (r *MyRedis) CheckExpiration(ctx context.Context, k string) (time.Duration, error) {
 	return RDBClient.TTL(ctx, k).Result()
 }
+
+func (r *MyRedis) LPush(ctx context.Context, k string, v ...any) error {
+	// 这里指示Left Push list的接口，具体实现还得看业务逻辑吧？
+	return RDBClient.LPush(ctx, k, v).Err()
+}
+
+func (r *MyRedis) BRPop(ctx context.Context, timeout time.Duration, key ...string) ([]string, error) {
+	return RDBClient.BRPop(ctx, timeout, key...).Result()
+}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 	api "xdemo/internal/api"
 	resp "xdemo/internal/api/response"
 
@@ -17,11 +18,25 @@ func InitPublicRoutes() {
 		rgPublic.GET("/getCaptcha", api.RequestLoginCaptcha)
 
 		// 测试API
-		rgPublic.POST("/test", func(ctx *gin.Context) {
-			tokenStr := ctx.Request.Header.Get("Authorization")
-			log.Println(tokenStr)
-
-			// 测试解析
+		rgAuth.POST("/test/queue/start", func(ctx *gin.Context) {
+			queueClient, _ := api.GetMyQueueForRedis()
+			jobInfo := &api.Job{
+				UUID:       api.GenerateRandKey(),
+				Name:       "ContainerCreate",
+				QueueName:  "xdemo_default_task",
+				Type:       "container",
+				Parameters: []string{"createCfg.Name", "createCfg.Image"},
+				Service:    "test_test",
+				CreateAt:   time.Now(),
+			}
+			jobId, err := queueClient.JobProducer(ctx, jobInfo)
+			fmt.Println(jobId)
+			if err != nil {
+				log.Println("(异步)创建容器发生错误", err)
+				ctx.JSON(http.StatusOK, resp.FailedRespJSON(resp.InternalServerError, "Internal Server Error", "容器创建失败", nil))
+				return
+			}
+			ctx.JSON(http.StatusOK, resp.SuccessRespJSON("Success", "Create Container Success", jobId))
 		})
 
 		// 测试Websocket
@@ -90,19 +105,3 @@ func InitPublicRoutes() {
 		})
 	})
 }
-
-// func wsHealthCheck(cancel chan struct{}) {
-// 	// select信号控制
-// 	for {
-// 		fmt.Println("正在进行心跳检测！！！！")
-
-// 		select {
-// 		case <-cancel:
-// 			fmt.Println("收到channel消息，取消当前goroutine")
-// 			return
-// 		default:
-// 			fmt.Println("default nothing")
-// 		}
-// 		time.Sleep(2 * time.Second)
-// 	}
-// }

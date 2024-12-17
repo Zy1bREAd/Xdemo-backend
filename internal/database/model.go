@@ -46,6 +46,19 @@ func (hl HandleLog) TableName() string {
 	return TableNamePrefix + "handle_log"
 }
 
+// Job表
+type Job struct {
+	gorm.Model
+	UUID   string `gorm:"column:uuid;type:varchar(32);index;"`
+	Name   string `gorm:"column:job_name;type:varchar(64);"`
+	Status string `gorm:"column:job_status;type:varchar(32)"`
+	// Description string `gorm:"column:job_desc;type:varchar(64)"`
+}
+
+func (j Job) TableName() string {
+	return TableNamePrefix + "job"
+}
+
 // 校验器
 type RegisterUser struct {
 	Name            string `json:"username" validate:"required"`

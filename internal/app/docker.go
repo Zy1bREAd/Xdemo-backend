@@ -99,20 +99,33 @@ func CreateContainer(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, resp.FailedRespJSON(resp.InternalServerError, "Internal Server Error", "拉取镜像失败", nil))
 		return
 	}
-	cid, err := api.DockerInstance.ContainerCreate(createCfg.Name, createCfg.Image)
+	// 使用异步机制处理
+	queueClient, _ := api.GetMyQueueForRedis()
+	jobInfo := &api.Job{
+		UUID:       api.GenerateRandKey(),
+		Name:       "ContainerCreate",
+		QueueName:  "xdemo_default_task",
+		Type:       "container",
+		Parameters: []string{createCfg.Name, createCfg.Image},
+		Service:    "create_container",
+		CreateAt:   time.Now(),
+	}
+	jobId, err := queueClient.JobProducer(ctx, jobInfo)
 	if err != nil {
-		log.Println("创建容器发生错误", err)
+		log.Println("(异步)创建容器发生错误", err)
 		ctx.JSON(http.StatusOK, resp.FailedRespJSON(resp.InternalServerError, "Internal Server Error", "容器创建失败", nil))
 		return
 	}
-	cInfo, err := api.DockerInstance.ContainerInspectBaseInfo(cid)
-	if err != nil {
-		log.Println("获取容器基础信息发生错误", err)
-		ctx.JSON(http.StatusOK, resp.FailedRespJSON(resp.InternalServerError, "Internal Server Error", "获取容器信息失败", nil))
-		return
-	}
-	ctx.JSON(http.StatusOK, resp.SuccessRespJSON("Success", "Create Container Success", cInfo))
-	middleware.DoLog(ctx, 1, "Container", fmt.Sprintf("创建容器 %s", cid))
+	// （同步）
+	// cid, err := api.DockerInstance.ContainerCreate(createCfg.Name, createCfg.Image)
+	// cInfo, err := api.DockerInstance.ContainerInspectBaseInfo(cid)
+	// if err != nil {
+	// 	log.Println("获取容器基础信息发生错误", err)
+	// 	ctx.JSON(http.StatusOK, resp.FailedRespJSON(resp.InternalServerError, "Internal Server Error", "获取容器信息失败", nil))
+	// 	return
+	// }
+	ctx.JSON(http.StatusOK, resp.SuccessRespJSON("Success", "Create Container Success", jobId))
+	middleware.DoLog(ctx, 1, "Container", fmt.Sprintf("创建容器,Job:%s", jobId))
 
 }
 

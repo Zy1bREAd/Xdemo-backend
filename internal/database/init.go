@@ -23,7 +23,7 @@ func (it InitTable) TableName() string {
 // 初始化数据库操作（建立表等）
 func InitDBTable(db *gorm.DB) error {
 	// 先判断是否需要初始化，其次判断是否连接正常，最后进行初始化
-	err := db.AutoMigrate(&InitTable{}, &User{}, &HandleLog{}) // 后期只能第一次进行automigrate，否则影响线上生产环境
+	err := db.AutoMigrate(&InitTable{}, &User{}, &HandleLog{}, &Job{}) // 后期只能第一次进行automigrate，否则影响线上生产环境
 	if err != nil {
 		return fmt.Errorf("init DB Error: %s", err)
 	}

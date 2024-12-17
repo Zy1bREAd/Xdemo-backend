@@ -13,11 +13,12 @@ import (
 
 // App的环境变量配置
 type AppConfigEnv struct {
-	DataBase DataBaseConfig `yaml:"mysql"`
-	System   SystemConfig   `yaml:"system"`
-	Redis    RedisConfig    `yaml:"redis"`
-	Docker   DockerConfig   `yaml:"docker"`
-	K8s      K8sConfig      `yaml:"k8s"`
+	DataBase  DataBaseConfig `yaml:"mysql"`
+	System    SystemConfig   `yaml:"system"`
+	Redis     RedisConfig    `yaml:"redis"`
+	Docker    DockerConfig   `yaml:"docker"`
+	K8s       K8sConfig      `yaml:"k8s"`
+	TaskQueue TaskQueue      `yaml:"task_queue"`
 }
 
 type SystemConfig struct {
@@ -50,6 +51,11 @@ type DockerConfig struct {
 type K8sConfig struct {
 	Mode       int    `yaml:"mode"`
 	KubeConfig string `yaml:"kubeconfig"`
+}
+
+type TaskQueue struct {
+	Provider  string `yaml:"provider"`
+	Processer int    `yaml:"processer"`
 }
 
 // 统一接口获取环境变量（API调用接口）
@@ -152,6 +158,8 @@ func (cc *ContainerConfig) LoadInConfigEnv() {
 				cc.setDockerEnvMap(splitEnvKey[2], envValue)
 			case "k8s":
 				cc.setK8sEnvMap(splitEnvKey[2], envValue)
+			case "queue":
+				cc.setQueueEnvMap(splitEnvKey[2], envValue)
 			}
 		}
 	}
@@ -233,6 +241,20 @@ func (cc *ContainerConfig) setK8sEnvMap(keySplitThird string, value string) {
 		cc.Env.Redis.DB = int(convertResult)
 	case "kubeconfig":
 		cc.Env.K8s.KubeConfig = value
+	}
+}
+
+func (cc *ContainerConfig) setQueueEnvMap(keySplitThird string, value string) {
+	switch strings.ToLower(keySplitThird) {
+	case "provider":
+		cc.Env.TaskQueue.Provider = value
+	case "processer":
+		convertResult, err := strconv.ParseInt(value, 0, 32)
+		if err != nil {
+			log.Println("Convert To Int Error ", err)
+			panic(err)
+		}
+		cc.Env.TaskQueue.Processer = int(convertResult)
 	}
 }
 

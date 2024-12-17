@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -137,30 +138,38 @@ func (c *MyDocker) ParseContainerCreateConfig(configData *reqData.ContainerCreat
 
 // 容器创建基础版
 // 支持常用的选项： 名字，暴露端口，使用的网络，itd常用参数，持久化等
-func (c *MyDocker) ContainerCreate(cName string, i string) (string, error) {
+func (c *MyDocker) ContainerCreate(cName string, image string) (string, error) {
 	// 先检查image是否存在
-	if i == "" {
+	if image == "" {
 		return "", fmt.Errorf("Image不能为空")
 	}
-	err := c.IsImageExist(i)
+	// 循环判断image是否存在（因为不存在的时候回去pull，但是pull有个过程，到下一步创建容器就会报错，所以我们要等他拉完在create容器）
+
+	err := c.isImageExist(image)
 	if err != nil {
-		log.Println(err)
+		log.Println("不存在该image,现在进行re-pull image")
 		// re-Pull image
-		result := strings.Split(i, ":")
-		fmt.Println(result, i)
+		result := strings.Split(image, ":")
 		if len(result) != 2 {
-			log.Println("解析Image Name发生错误")
-			return "", fmt.Errorf("创建容器时拉取Image解析错误")
+			return "", fmt.Errorf("解析Image Name发生错误")
 		}
 		_, err := c.ImagePull(result[0], result[1], false)
 		if err != nil {
-			log.Println("解析Image Name发生错误")
-			return "", fmt.Errorf("创建容器时拉取Image错误")
+			return "", fmt.Errorf("拉取Image发生错误")
 		}
 	}
+	for {
+		err := c.isImageExist(image)
+		if err == nil {
+			fmt.Println("存在image")
+			break
+		}
+		time.Sleep(time.Second * 1)
+	}
+	// 需要确认image存在才往创建容器
 	createResp, err := apiClient.ContainerCreate(c.CTX, c.ContainerConfig, c.HostConfig, c.NetworkConfig, &v1.Platform{}, cName)
 	if err != nil {
-		fmt.Println(err, err.Error())
+		log.Println(">>创建容器发生错误,", err)
 		return "", err
 	}
 	return createResp.ID, nil
@@ -212,7 +221,7 @@ func (c *MyDocker) ContainerDelete(cid string, delOpts map[string]bool) error {
 	return err
 }
 
-func (c *MyDocker) IsImageExist(i string) error {
+func (c *MyDocker) isImageExist(i string) error {
 	_, _, err := apiClient.ImageInspectWithRaw(c.CTX, i)
 	if err != nil {
 		// DOcker官方返回的错误分404和500。很可能没有image，当然这边500错误要单独判断
@@ -222,7 +231,6 @@ func (c *MyDocker) IsImageExist(i string) error {
 }
 
 func (c *MyDocker) ImagePull(name string, tag string, isCover bool) (io.ReadCloser, error) {
-	fmt.Println(name, tag, isCover)
 	target := name + ":" + tag
 	if tag == "" {
 		target = name
