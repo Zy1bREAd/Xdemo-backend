@@ -13,65 +13,80 @@ import (
 
 // App的环境变量配置
 type AppConfigEnv struct {
-	DataBase  DataBaseConfig `yaml:"mysql"`
-	System    SystemConfig   `yaml:"system"`
-	Redis     RedisConfig    `yaml:"redis"`
-	Docker    DockerConfig   `yaml:"docker"`
-	K8s       K8sConfig      `yaml:"k8s"`
-	TaskQueue TaskQueue      `yaml:"task_queue"`
+	DataBase  DataBaseConfig  `yaml:"mysql" json:"mysql"`
+	System    SystemConfig    `yaml:"system" json:"system"`
+	Redis     RedisConfig     `yaml:"redis" json:"redis"`
+	Docker    DockerConfig    `yaml:"docker" json:"docker"`
+	K8s       K8sConfig       `yaml:"k8s" json:"k8s"`
+	TaskQueue TaskQueueConfig `yaml:"task_queue" json:"task_queue"`
+	// Consul    ConsulConfig    `yaml:"consul"`
 }
 
 type SystemConfig struct {
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
-	Mode string `yaml:"mode"`
+	Host string `yaml:"host" json:"host"`
+	Port string `yaml:"port" json:"port"`
+	Mode string `yaml:"mode" json:"mode"`
 }
 
 type DataBaseConfig struct {
-	Host       string `yaml:"host"`
-	Port       string `yaml:"port"`
-	DBName     string `yaml:"dbname"`
-	DBUser     string `yaml:"dbuser"`
-	DBPassword string `yaml:"dbpassword"`
+	Host       string `yaml:"host" json:"host"`
+	Port       string `yaml:"port" json:"port"`
+	DBName     string `yaml:"dbname" json:"dbname"`
+	DBUser     string `yaml:"dbuser" json:"dbuser"`
+	DBPassword string `yaml:"dbpassword" json:"dbpassword"`
 }
 
 type RedisConfig struct {
-	Addr     string `yaml:"addr"`
-	Port     string `yaml:"port"`
-	DB       int    `yaml:"db"`
-	Password string `yaml:"password"`
-	TLS      bool   `yaml:"tls"`
+	Addr     string `yaml:"addr" json:"addr"`
+	Port     string `yaml:"port" json:"port"`
+	DB       int    `yaml:"db" json:"db"`
+	Password string `yaml:"password" json:"password"`
+	TLS      bool   `yaml:"tls" json:"tls"`
 }
 
 type DockerConfig struct {
-	Host    string `yaml:"host"`
-	Version string `yaml:"version"`
+	Host    string `yaml:"host" json:"host"`
+	Version string `yaml:"version" json:"version"`
 }
 
 type K8sConfig struct {
-	Mode       int    `yaml:"mode"`
-	KubeConfig string `yaml:"kubeconfig"`
+	Mode       int    `yaml:"mode" json:"mode"`
+	KubeConfig string `yaml:"kubeconfig" json:"kubeconfig"`
 }
 
-type TaskQueue struct {
-	Provider  string `yaml:"provider"`
-	Processer int    `yaml:"processer"`
+type TaskQueueConfig struct {
+	Provider  string `yaml:"provider" json:"provider"`
+	Processer int    `yaml:"processer" json:"processer"`
+}
+
+// type ConsulConfig struct {
+// 	Addr   string     `yaml:"addr"`
+// 	Scheme int        `yaml:"scheme"`
+// 	Auth   AuthDetail `yaml:"auth"`
+// }
+
+type AuthDetail struct {
+	Enabled bool   `yaml:"enabled" json:"enabled"`
+	Token   string `yaml:"token" json:"token"`
 }
 
 // 统一接口获取环境变量（API调用接口）
 func NewConfigEnvProvider() AppConfigEnv {
+	if appConfigEnv == nil {
+		log.Fatalln("环境配置没有初始化...")
+	}
 	return appConfigEnv.GetAppConfigEnv()
 }
 
 // 指定方式读取ConfigEnv
 func InitConfigEnv() {
 	// 通过环境变量判断当前App启动mode
-	appMode := os.Getenv("XDEMO_SYSTEM_MODE")
-	appMode = strings.ToLower(appMode)
-	if appMode == "" {
-		appMode = "local"
+	configSource := os.Getenv("XDEMO_CONFIG_SOURCE")
+	configSource = strings.ToLower(configSource)
+	if configSource == "" {
+		configSource = "consul"
 	}
-	switch appMode {
+	switch configSource {
 	case "local":
 		var yamlConfig YAMLConfig
 		yamlConfig.LoadInConfigEnv()
@@ -79,10 +94,14 @@ func InitConfigEnv() {
 		var containerConfig ContainerConfig
 		containerConfig.LoadInConfigEnv()
 		fmt.Println("容器变量：", containerConfig.Env)
+	// 支持Consul 配置中心
+	case "consul":
+		var consulConfig ConsulConfig
+		consulConfig.LoadInConfigEnv()
+		fmt.Println("Consul读取的变量：", consulConfig.Env)
 	default:
 		panic(fmt.Errorf("暂不支持其他App启动模式"))
 	}
-	fmt.Println("App Start Mode: ", appMode)
 }
 
 var appConfigEnv ConfigEnv

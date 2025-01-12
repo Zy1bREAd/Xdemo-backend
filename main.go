@@ -2,11 +2,16 @@ package main
 
 import (
 	"log"
-	api "xdemo/internal/api"
+	"xdemo/internal/api"
 	"xdemo/internal/config"
-	db "xdemo/internal/database"
-	middleware "xdemo/internal/middleware"
-	router "xdemo/internal/router"
+	"xdemo/internal/database"
+	"xdemo/internal/middleware"
+	"xdemo/internal/router"
+	// api "xdemo/internal/api"
+	// "xdemo/internal/config"
+	// db "xdemo/internal/database"
+	// middleware "xdemo/internal/middleware"
+	// router "xdemo/internal/router"
 )
 
 func main() {
@@ -24,7 +29,7 @@ func main() {
 	// 加载配置文件
 	// yamlConfig := config.LoadConfig()
 	config.InitConfigEnv()
-	db.LoadDB()
+	database.LoadDB()
 	api.InitRedis()
 	api.InitQueue()
 	api.InitDocker()

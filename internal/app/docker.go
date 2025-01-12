@@ -264,18 +264,16 @@ func EnterContainer(ctx *gin.Context) {
 	if cid == "" {
 		panic(fmt.Errorf("contianer Name Not Empty"))
 	}
-	// 确定容器ID或名字,(背后是否应该存储用户相关的ws连接呢？)
+	// 升级Websocket协议
 	wsDefaultConfig := api.DefaultWSConfig()
 	wsConn, err := wsDefaultConfig.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		panic(err)
 	}
+	// 初始化WebSocket通信
 	wsInstance := api.NewMyWebSocket(wsConn)
 	wsInstance.Start()
-	// // 当Websocket准备好，返回JSON信息告知Client然后进行websocket连接
-	// ctx.JSON(http.StatusOK, resp.SuccessRespJSON("Success", "HTTP/WebSocket Upgrade Success,WebSocket Ready Connect", map[string]string{
-	// 	"ws_id": "WSConnection_SLOT",
-	// }))
+	// 正式开始双方收发消息
 	for {
 		clientCmd, err := wsInstance.ReadMessage()
 		if err != nil {
@@ -286,7 +284,7 @@ func EnterContainer(ctx *gin.Context) {
 			wsInstance.Close()
 			return
 		}
-		// 将输字节切片数据转成命令（字符串切片）
+		// 将输入字节切片数据转成命令（字符串切片）
 		cmdStringSlice := api.ConvertToCmdSlice(clientCmd)
 
 		execResult, err := api.DockerInstance.ContainerExecCmd(cid, cmdStringSlice)

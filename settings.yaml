@@ -29,3 +29,10 @@ k8s:
 task_queue:
   provider: redis
   processer: 3
+
+consul:
+  addr: 159.75.119.146:8500
+  scheme: http
+  auth:
+    enabled: true
+    token: 54d11d67-9a0c-96e2-eebb-32ab0dd37794  #应该通过secret获取

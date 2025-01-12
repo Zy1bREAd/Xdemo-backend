@@ -57,6 +57,7 @@ func InitRouter() {
 			log.Fatalf("Start Gin Server Error is %s", err)
 		}
 	}()
+
 	// 等待信号量的出现
 	<-ctx.Done()
 	// 接收到信号量后进行优雅关闭服务器
